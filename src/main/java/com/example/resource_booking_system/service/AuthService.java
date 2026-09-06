@@ -6,6 +6,7 @@ import com.example.resource_booking_system.entity.User;
 import com.example.resource_booking_system.repository.UserRepository;
 import com.example.resource_booking_system.security.CustomUserDetailsService;
 import com.example.resource_booking_system.security.JwtTokenProvider;
+import com.example.resource_booking_system.enums.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -38,6 +39,10 @@ public class AuthService implements UserDetailsService {
     private final JwtTokenProvider jwtService;
     
     public User register(User user){
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+            throw new IllegalArgumentException("Username is already registered");
+        }
+        user.setRole(Role.USER);
         user.setPassword(new BCryptPasswordEncoder(12).encode(user.getPassword()));
         return userRepository.save(user);
     }

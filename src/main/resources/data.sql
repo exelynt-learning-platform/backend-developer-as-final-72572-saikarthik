@@ -1,8 +1,8 @@
 -- Insert seed users
 INSERT INTO users (username, email, password, role, created_at) VALUES 
-('admin', 'admin@example.com', '$2a$12$H5.yFxZpXp0GKVM3LlBBYu5t5r9q.oWn2VvjBjfkWpZJ0H5q1uFsG', 'ADMIN', NOW()),
-('user1', 'user1@example.com', '$2a$12$rKx7NyJ5qP5qZ4qR3dL5L.Q9O2N8K7J6H5G4F3E2D1C0B9A8.xxQFi', 'USER', NOW()),
-('user2', 'user2@example.com', '$2a$12$rKx7NyJ5qP5qZ4qR3dL5L.Q9O2N8K7J6H5G4F3E2D1C0B9A8.xxQFi', 'USER', NOW());
+('admin', 'admin@example.com', '$2a$10$CJNogQbitgGN.qw9D3vJme4IIoYN4zXESZekMAw4nUx/s7RjTrAke', 'ADMIN', NOW()),
+('user1', 'user1@example.com', '$2a$10$zUX7XVVxcM.MRBqxniCGe.OFkcPnUa9e3hO6BiwGOuLFAzrBkHr/m', 'USER', NOW()),
+('user2', 'user2@example.com', '$2a$10$zUX7XVVxcM.MRBqxniCGe.OFkcPnUa9e3hO6BiwGOuLFAzrBkHr/m', 'USER', NOW());
 
 -- Insert seed resources
 INSERT IGNORE INTO resources (name, description, type, price, available, created_at, updated_at) VALUES 
