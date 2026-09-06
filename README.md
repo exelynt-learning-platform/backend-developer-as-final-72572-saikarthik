@@ -65,6 +65,10 @@ mvn spring-boot:run
 
 The API will be available at: `http://localhost:8080/api`
 
+For a configured MySQL deployment, set `SPRING_SQL_INIT_MODE=always` once to load
+the seed users and resources from `data.sql`. The default is `never` so the
+application can start safely when a database is managed separately.
+
 ## Authentication
 
 ### Login Endpoint
