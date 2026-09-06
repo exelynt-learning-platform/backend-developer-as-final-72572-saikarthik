@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 public class ReservationRequest {
     
     @NotNull(message = "Resource ID is required")
+    @Positive(message = "Resource ID must be positive")
     private Long resourceId;
     
     @NotNull(message = "Start time is required")
@@ -24,5 +25,7 @@ public class ReservationRequest {
     @Future(message = "End time must be in the future")
     private LocalDateTime endTime;
     
+    @DecimalMin(value = "0.01", message = "Price must be greater than 0")
+    @DecimalMax(value = "999999.99", message = "Price is too high")
     private BigDecimal price;
 }

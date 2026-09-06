@@ -205,6 +205,13 @@ public class ReservationService {
 
     // Update reservation status (ADMIN only)
     public ReservationResponse updateReservationStatus(Long id, ReservationStatus status) {
+        boolean isAdmin = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
+        if (!isAdmin) {
+            throw new UnauthorizedException("Only administrators can update reservation status");
+        }
+
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Reservation not found"));
 

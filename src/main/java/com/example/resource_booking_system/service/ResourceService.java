@@ -11,6 +11,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Set;
+
 @Service
 public class ResourceService {
     private final ResourceRepository resourceRepository;
@@ -25,7 +27,10 @@ public class ResourceService {
         if (size == null || size <= 0) size = 10;
         if (size > 100) size = 100;
 
-        Sort sort = Sort.by(Sort.Direction.DESC, sortBy != null ? sortBy : "createdAt");
+        String requestedSort = sortBy != null ? sortBy : "createdAt";
+        String safeSort = Set.of("createdAt", "updatedAt", "name", "type", "price", "available")
+            .contains(requestedSort) ? requestedSort : "createdAt";
+        Sort sort = Sort.by(Sort.Direction.DESC, safeSort);
         Pageable pageable = PageRequest.of(page, size, sort);
         
         Page<Resource> resources = resourceRepository.findAll(pageable);
