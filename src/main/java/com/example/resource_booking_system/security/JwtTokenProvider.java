@@ -17,9 +17,9 @@ import java.util.List;
 import java.util.function.Function;
 
 @Component
-public class JwtService {
+public class JwtTokenProvider {
     private static String secretkey;
-    JwtService(){
+    JwtTokenProvider(){
         SecureRandom random=new SecureRandom();
         byte[] key=new byte[32];
         random.nextBytes(key);

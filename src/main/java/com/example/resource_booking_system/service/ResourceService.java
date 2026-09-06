@@ -1,54 +1,90 @@
 package com.example.resource_booking_system.service;
 
-import com.example.resource_booking_system.exception.ResourceNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import com.example.resource_booking_system.repository.ResourceRepository;
+import com.example.resource_booking_system.dto.resources.ResourceRequest;
+import com.example.resource_booking_system.dto.resources.ResourceResponse;
 import com.example.resource_booking_system.entity.Resource;
-import org.springframework.web.bind.annotation.PathVariable;
-
-import java.util.List;
-
+import com.example.resource_booking_system.exception.ResourceNotFoundException;
+import com.example.resource_booking_system.repository.ResourceRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
 
 @Service
 public class ResourceService {
-    @Autowired
-    private ResourceRepository resourceRepository;
+    private final ResourceRepository resourceRepository;
+
     public ResourceService(ResourceRepository resourceRepository) {
         this.resourceRepository = resourceRepository;
     }
 
-    public List<Resource> getResources(){
-        return resourceRepository.findAll();
+    // Get all resources with pagination
+    public Page<ResourceResponse> getResources(Integer page, Integer size, String sortBy) {
+        if (page == null || page < 0) page = 0;
+        if (size == null || size <= 0) size = 10;
+        if (size > 100) size = 100;
+
+        Sort sort = Sort.by(Sort.Direction.DESC, sortBy != null ? sortBy : "createdAt");
+        Pageable pageable = PageRequest.of(page, size, sort);
+        
+        Page<Resource> resources = resourceRepository.findAll(pageable);
+        return resources.map(this::convertToResponse);
     }
-    public Resource getResourcesById(@PathVariable Long id){
-        return resourceRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("id not found"));
+
+    // Get single resource by ID
+    public ResourceResponse getResourceById(Long id) {
+        Resource resource = resourceRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Resource not found"));
+        return convertToResponse(resource);
     }
-    public Resource createResources( Resource resource){
-        return resourceRepository.save(resource);
+
+    // Create resource (ADMIN only)
+    public ResourceResponse createResource(ResourceRequest request) {
+        Resource resource = new Resource();
+        resource.setName(request.getName());
+        resource.setDescription(request.getDescription());
+        resource.setType(request.getType());
+        resource.setPrice(request.getPrice());
+        resource.setAvailable(request.getAvailable());
+
+        Resource saved = resourceRepository.save(resource);
+        return convertToResponse(saved);
     }
-    public Resource createResourcesById(Long id,Resource resource){
-        Resource res=resourceRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("id not found"));
-        res.setName(resource.getName());
-        res.setDescription(resource.getDescription());
-        res.setType(resource.getType());
-        res.setPrice(resource.getPrice());
-        res.setAvailable(resource.getAvailable());
-        return resourceRepository.save(res);
+
+    // Update resource (ADMIN only)
+    public ResourceResponse updateResource(Long id, ResourceRequest request) {
+        Resource resource = resourceRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Resource not found"));
+
+        resource.setName(request.getName());
+        resource.setDescription(request.getDescription());
+        resource.setType(request.getType());
+        resource.setPrice(request.getPrice());
+        resource.setAvailable(request.getAvailable());
+
+        Resource updated = resourceRepository.save(resource);
+        return convertToResponse(updated);
     }
-    public Resource updateResource(Long id,Resource resource){
-        Resource res=resourceRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("id not found"));
-        res.setName(resource.getName());
-        res.setDescription(resource.getDescription());
-        res.setType(resource.getType());
-        res.setPrice(resource.getPrice());
-        res.setAvailable(resource.getAvailable());
-        res.setCreatedAt(resource.getCreatedAt());
-        return resourceRepository.save(res);
+
+    // Delete resource (ADMIN only)
+    public void deleteResource(Long id) {
+        Resource resource = resourceRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Resource not found"));
+        resourceRepository.delete(resource);
     }
-    public String deleteResource(Long id){
-        Resource res=resourceRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("id not found"));
-        resourceRepository.delete(res);
-        return "Deleted successfully";
+
+    // Helper method
+    private ResourceResponse convertToResponse(Resource resource) {
+        ResourceResponse response = new ResourceResponse();
+        response.setId(resource.getId());
+        response.setName(resource.getName());
+        response.setDescription(resource.getDescription());
+        response.setType(resource.getType());
+        response.setPrice(resource.getPrice());
+        response.setAvailable(resource.getAvailable());
+        response.setCreatedAt(resource.getCreatedAt());
+        response.setUpdatedAt(resource.getUpdatedAt());
+        return response;
     }
 }

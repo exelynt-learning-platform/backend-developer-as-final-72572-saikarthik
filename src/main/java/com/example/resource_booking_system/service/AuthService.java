@@ -1,12 +1,11 @@
 package com.example.resource_booking_system.service;
 
-import com.example.resource_booking_system.config.UserPrincipal;
 import com.example.resource_booking_system.dto.login.LoginRequest;
 import com.example.resource_booking_system.dto.login.LoginResponse;
 import com.example.resource_booking_system.entity.User;
 import com.example.resource_booking_system.repository.UserRepository;
-
-import com.example.resource_booking_system.security.JwtService;
+import com.example.resource_booking_system.security.CutomUserDetailsService;
+import com.example.resource_booking_system.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,7 +24,7 @@ import java.util.Optional;
 
 @Service
 public class AuthService implements UserDetailsService {
-    public AuthService(JwtService jwtService, @Lazy AuthenticationManager authenticationManager, UserRepository userRepository) {
+    public AuthService(JwtTokenProvider jwtService, @Lazy AuthenticationManager authenticationManager, UserRepository userRepository) {
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
@@ -36,7 +35,7 @@ public class AuthService implements UserDetailsService {
 
     private final AuthenticationManager authenticationManager;
 
-    private final JwtService jwtService;
+    private final JwtTokenProvider jwtService;
     
     public User register(User user){
         user.setPassword(new BCryptPasswordEncoder(12).encode(user.getPassword()));
@@ -48,7 +47,7 @@ public class AuthService implements UserDetailsService {
     public UserDetails loadUserByUsername( String username) throws UsernameNotFoundException {
         Optional<User> byUsername=userRepository.findByUsername(username);
         if(byUsername.isEmpty()) {throw new UsernameNotFoundException("user not found" );}
-        return new UserPrincipal(byUsername.get());
+        return new CutomUserDetailsService(byUsername.get());
     }
     public String login(LoginRequest loginRequest){
         Authentication authentication= authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(),loginRequest.getPassword()));
