@@ -4,7 +4,7 @@ import com.example.resource_booking_system.dto.login.LoginRequest;
 import com.example.resource_booking_system.dto.login.LoginResponse;
 import com.example.resource_booking_system.entity.User;
 import com.example.resource_booking_system.repository.UserRepository;
-import com.example.resource_booking_system.security.CutomUserDetailsService;
+import com.example.resource_booking_system.security.CustomUserDetailsService;
 import com.example.resource_booking_system.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -47,7 +47,7 @@ public class AuthService implements UserDetailsService {
     public UserDetails loadUserByUsername( String username) throws UsernameNotFoundException {
         Optional<User> byUsername=userRepository.findByUsername(username);
         if(byUsername.isEmpty()) {throw new UsernameNotFoundException("user not found" );}
-        return new CutomUserDetailsService(byUsername.get());
+        return new CustomUserDetailsService(byUsername.get());
     }
     public String login(LoginRequest loginRequest){
         Authentication authentication= authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(),loginRequest.getPassword()));

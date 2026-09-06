@@ -1,43 +1,40 @@
 package com.example.resource_booking_system.security;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.security.Key;
-import java.security.SecureRandom;
-import java.util.Base64;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 
 @Component
 public class JwtTokenProvider {
-    private static String secretkey;
-    JwtTokenProvider(){
-        SecureRandom random=new SecureRandom();
-        byte[] key=new byte[32];
-        random.nextBytes(key);
-        secretkey= Base64.getEncoder().encodeToString(key);
+    private final SecretKey signingKey;
+    private final long expirationTime;
+
+    public JwtTokenProvider(
+            @Value("${jwt.secret.key}") String secret,
+            @Value("${jwt.expiration.time}") long expirationTime) {
+        if (secret.length() < 32) {
+            throw new IllegalArgumentException("JWT secret must contain at least 32 characters");
+        }
+        this.signingKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.expirationTime = expirationTime;
     }
+
     public String generateToken(String username, List<String> roles){
         return Jwts.builder()
                 .subject(username)
                 .claim("roles", roles)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis()+1000*60*20))
-                .signWith(getSignedKey())
+                .expiration(new Date(System.currentTimeMillis() + expirationTime))
+                .signWith(signingKey)
                 .compact();
-    }
-    private Key getSignedKey(){
-        byte[] keyBytes= Decoders.BASE64.decode(secretkey);
-        return Keys.hmacShaKeyFor(keyBytes);
-
     }
 
     public Boolean validToken(String token, String username){
@@ -59,7 +56,7 @@ public class JwtTokenProvider {
     }
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver){
         final Claims claims= Jwts.parser()
-                .verifyWith((SecretKey) getSignedKey())
+                .verifyWith(signingKey)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();

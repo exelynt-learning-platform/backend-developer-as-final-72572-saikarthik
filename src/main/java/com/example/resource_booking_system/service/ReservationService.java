@@ -15,11 +15,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import jakarta.persistence.criteria.Predicate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class ReservationService {
@@ -56,7 +59,10 @@ public class ReservationService {
         if ("asc".equalsIgnoreCase(sortDirection)) {
             direction = Sort.Direction.ASC;
         }
-        Sort sort = Sort.by(direction, sortBy != null ? sortBy : "createdAt");
+        String requestedSort = sortBy != null ? sortBy : "createdAt";
+        String safeSort = List.of("createdAt", "updatedAt", "startTime", "endTime", "price", "status")
+            .contains(requestedSort) ? requestedSort : "createdAt";
+        Sort sort = Sort.by(direction, safeSort);
         Pageable pageable = PageRequest.of(page, size, sort);
 
         // Check if user is ADMIN or accessing their own reservations
@@ -66,27 +72,25 @@ public class ReservationService {
 
         boolean isAdmin = currentUser.getRole().toString().equals("ADMIN");
 
-        Page<Reservation> reservations;
-
         // ADMIN can filter by any user, USER can only see their own
         Long filterUserId = isAdmin ? userId : currentUser.getId();
-
-        // Apply filters based on provided parameters
-        if (status != null && minPrice != null && maxPrice != null) {
-            reservations = reservationRepository.findByUserIdStatusAndPriceRange(
-                    filterUserId, status, minPrice, maxPrice, pageable);
-        } else if (status != null && minPrice != null) {
-            reservations = reservationRepository.findByUserIdAndStatus(filterUserId, status, pageable);
-        } else if (status != null && maxPrice != null) {
-            reservations = reservationRepository.findByUserIdAndStatus(filterUserId, status, pageable);
-        } else if (status != null) {
-            reservations = reservationRepository.findByUserIdAndStatus(filterUserId, status, pageable);
-        } else if (minPrice != null && maxPrice != null) {
-            reservations = reservationRepository.findByUserIdAndPriceRange(
-                    filterUserId, minPrice, maxPrice, pageable);
-        } else {
-            reservations = reservationRepository.findByUserId(filterUserId, pageable);
-        }
+        Specification<Reservation> specification = (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (filterUserId != null) {
+                predicates.add(criteriaBuilder.equal(root.get("user").get("id"), filterUserId));
+            }
+            if (status != null) {
+                predicates.add(criteriaBuilder.equal(root.get("status"), status));
+            }
+            if (minPrice != null) {
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("price"), minPrice));
+            }
+            if (maxPrice != null) {
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("price"), maxPrice));
+            }
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+        Page<Reservation> reservations = reservationRepository.findAll(specification, pageable);
 
         return reservations.map(this::convertToResponse);
     }

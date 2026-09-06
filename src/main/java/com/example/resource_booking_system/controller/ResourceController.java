@@ -24,7 +24,6 @@ public class ResourceController {
 
     // Get all resources with pagination
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<Page<ResourceResponse>> getResources(
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
@@ -35,7 +34,6 @@ public class ResourceController {
 
     // Get single resource by ID
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<ResourceResponse> getResourceById(@PathVariable Long id) {
         ResourceResponse resource = resourceService.getResourceById(id);
         return ResponseEntity.ok(resource);
