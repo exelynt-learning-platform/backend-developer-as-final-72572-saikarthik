@@ -58,7 +58,7 @@ public class ReservationController {
 
     // Update reservation
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ReservationResponse> updateReservation(
             @PathVariable Long id,
             @Valid @RequestBody ReservationRequest request) {
@@ -68,7 +68,7 @@ public class ReservationController {
 
     // Delete reservation
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteReservation(@PathVariable Long id) {
         reservationService.deleteReservation(id);
         return ResponseEntity.ok("Reservation deleted successfully");

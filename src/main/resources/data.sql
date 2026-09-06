@@ -1,5 +1,5 @@
 -- Insert seed users
-INSERT INTO users (username, email, password, role, created_at) VALUES 
+INSERT IGNORE INTO users (username, email, password, role, created_at) VALUES 
 ('admin', 'admin@example.com', '$2a$10$CJNogQbitgGN.qw9D3vJme4IIoYN4zXESZekMAw4nUx/s7RjTrAke', 'ADMIN', NOW()),
 ('user1', 'user1@example.com', '$2a$10$zUX7XVVxcM.MRBqxniCGe.OFkcPnUa9e3hO6BiwGOuLFAzrBkHr/m', 'USER', NOW()),
 ('user2', 'user2@example.com', '$2a$10$zUX7XVVxcM.MRBqxniCGe.OFkcPnUa9e3hO6BiwGOuLFAzrBkHr/m', 'USER', NOW());
